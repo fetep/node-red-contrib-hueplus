@@ -3,7 +3,7 @@
     "version"      : "0.0.5",
     "description"  : "Hue Nodes for Node Red",
     "dependencies": {
-		"node-hue-api":"1.0.2"
+		"node-hue-api":"2.2.0"
     },
 	"repository": {
 		"type": "git",
@@ -12,7 +12,9 @@
     "keywords": [ "node-red", "hue" ],
     "node-red"     : {
         "nodes": {
-            "hue": "hue.js"
+            "hue-bridge": "hue-bridge.js",
+            "hue-state": "hue-state.js",
+            "hue-set": "hue-set.js"
         }
     }
 }
