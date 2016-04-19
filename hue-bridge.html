@@ -1,0 +1,78 @@
+<script type="text/x-red" data-template-name="hue-bridge">
+  <div class="form-row">
+      <label for="node-config-input-name"><i class="fa fa-header"></i> Name</label>
+      <input type="text" id="node-config-input-name" />
+  </div>
+  <div class="form-row">
+      <label for="node-config-input-bridge"><i class="fa fa-server"></i> Bridge</label>
+      <input type="text" id="node-config-input-bridge" style="width: 60%;"/>
+      <a id="node-config-input-scan" class="editor-button"><i class="fa fa-search"></i></a>
+  </div>
+  <div class="form-row">
+      <label for="node-config-input-key"><i class="fa fa-key"></i> API Key</label>
+      <input type="text" id="node-config-input-key" style="width: 60%;" disabled/>
+      <a id="node-config-input-register" class="editor-button"><i class="fa fa-sign-in"></i></a>
+  </div>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType("hue-bridge", {
+    category: "config",
+    defaults: {
+      name: {value:"", required: false},
+      bridge: { value:"", required: true},
+      key: {value:"", required: true}
+    },
+    label: function() {
+      return this.name ? this.name : "Hue Bridge";
+    },
+    oneditprepare: function() {
+
+      function toggleSelect() {
+        var current = $('#node-config-input-bridge').val();
+        $('#node-config-input-bridge').replaceWith('<input type="text" id="node-config-input-bridge" style="width: 60%;"/>');
+        $('#node-config-input-bridge').val(current);
+      }
+
+      function toggleInput() {
+        var current = $('#node-config-input-bridge').val();
+        $('#node-config-input-bridge').replaceWith('<select id="node-config-input-bridge" style="width: 60%;"></select>');
+        $.get( 'philipshue/server')
+          .done( function(data) {
+            var bridges = JSON.parse(data);
+            if(bridges.length <= 0) {
+              RED.notify("No bridge found.", "error");
+            }
+            bridges.forEach(function(bridge) {
+              $('#node-config-input-bridge').append('<option value="' + bridge.ipaddress + '">' + bridge.name + '</option>');
+            });
+            $('#node-config-input-bridge').val(current);
+          })
+          .fail(function() {
+            RED.notify("Something went wrong.", "error");
+          });
+      }
+
+      $('#node-config-input-scan').click(function() {
+        if ($('#node-config-input-bridge').prop("tagName") === "INPUT") {
+          toggleInput();
+        } else {
+          toggleSelect();
+        }
+      });
+
+      $('#node-config-input-register').click(function() {
+        if(!$('#node-config-input-bridge').val()) {
+          RED.notify("Select your bridge before register", "error");
+        } else {
+          $.get('philipshue/register', { host: $('#node-config-input-bridge').val() } )
+            .done( function(data) {
+              $('#node-config-input-key').val(JSON.parse(data));
+            }).fail(function(err) {
+              RED.notify("Something went wrong: "+err.responseText, "error");
+            });
+        }
+      });
+    }
+  });
+</script>

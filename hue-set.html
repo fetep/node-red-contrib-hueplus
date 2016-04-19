@@ -1,0 +1,106 @@
+<script type="text/x-red" data-template-name="hue-set">
+    <div class="form-row">
+        <label for="node-input-bridge"><i class="fa fa-server"></i> Bridge</label>
+        <input type="text" id="node-input-bridge">
+    </div>
+    <div class="form-row">
+        <label for="node-input-light"><i class="fa fa-lightbulb-o"></i> Light</label>
+        <input type="text" id="node-input-light" style="width: 57%;" />
+        <a id="node-input-scan" class="editor-button"><i class="fa fa-search"></i></a>
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" style="width: 250px;" />
+    </div>
+        <div class="form-tips" id="node-warning" style="display: none"><b> Tip:</b> If no collection is set, ensure <b>msg.collection</b> will contain the collection name
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="hue-set">
+    <p>Sets the state of the selected device. Please see the documentation of the underlying API for options: <a href="https://github.com/peter-murray/node-hue-api#lightstate-options">API docs</a>.<br/>
+	Example:<br/>
+<pre>
+{
+  "on": true,
+  "bri": 254,
+  "hue": 0,
+  "sat": 254,
+  "alert": "lselect"
+}
+</pre>
+	</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('hue-set', {
+        category: 'advanced',
+        color: "rgb(218, 196, 180)",
+        defaults: {
+          bridge: {type:"hue-bridge",required:true},
+    			light: {value: ""},
+    			name: {value: ""}
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "feed.png",
+        label: function() {
+			       return this.name || "Hue Set";
+        },
+        labelStyle: function() {
+            return this.name ? "node_label_italic" : "";
+        },
+        oneditprepare: function() {
+
+          function toggleSelect() {
+            var current = $('#node-input-light').val();
+            $('#node-input-scan').html("<i class='fa fa-search'></i>");
+            $('#node-input-light').replaceWith('<input type="text" id="node-input-light" style="width: 57%;"/>');
+            $('#node-input-light').val(current);
+          }
+
+          function toggleInput() {
+            var current = $('#node-input-light').val();
+            $('#node-input-scan').html("<i class='fa fa-i-cursor'></i>");
+            var config = RED.nodes.node($('#node-input-bridge').val());
+            $('#node-input-light').replaceWith('<select id="node-input-light" style="width: 60%;"></select>');
+            if (config && config.bridge && config.key) {
+              $.get('philipshue/lights', { host: config.bridge, key: config.key } )
+                .done(function(data) {
+                  var lights = JSON.parse(data).lights;
+                  if(!lights || lights.length <= 0) {
+                    RED.notify("No lights found!", "error");
+                    return;
+                  }
+                  lights.forEach(function(light) {
+                    $('#node-input-light').append('<option value="' + light.id + '">' + light.name + '</option>');
+                  });
+                  $('#node-input-light').val(current);
+                }).fail(function(err) {
+                  RED.notify(err.responseText, "error");
+                });
+              $.get('philipshue/groups', { host: config.bridge, key: config.key } )
+                .done(function(data) {
+                  var groups = JSON.parse(data);
+                  if(!groups) return;
+                  groups.forEach(function(group) {
+                    $('#node-input-light').append('<option value="g-' + group.id + '">' + group.name + '</option>');
+                  });
+                  $('#node-input-light').val(current);
+                }).fail(function(err) {
+                  RED.notify(err.responseText, "error");
+                });
+            }
+          }
+
+
+          $('#node-input-scan').click( function() {
+            if ($('#node-input-light').prop("tagName") === "INPUT") {
+              toggleInput();
+            } else {
+              toggleSelect();
+            }
+          });
+
+        }
+    });
+</script>
