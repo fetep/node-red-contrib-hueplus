@@ -3,7 +3,7 @@ This is a complete rework of the original node-red-contrib-hue nodes by urbiworx
 Control you Hue Lamps out of Node RED.
 
 ## Installation
-Just install this plugin to your Node Red installation by using npm: "npm install node-red-contrib-hue" in your Node Red root directory
+Just install this plugin to your Node Red installation by using npm: "npm install node-red-contrib-hueplus" in your Node Red root directory
 
 ## Usage
 All you need to know is bundled with the installation: Just drag one of each of the hue nodes into your graph and read the manual displayed. Also no hassle to create a hue-user: just open the dialog, push the button on the bridge, select the hue server (is auto-discovered) and you are good to go.
